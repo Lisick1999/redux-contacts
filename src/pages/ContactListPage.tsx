@@ -1,46 +1,53 @@
-import React, {memo, useState} from 'react';
-import {CommonPageProps} from './types';
-import {Col, Row} from 'react-bootstrap';
-import {ContactCard} from 'src/components/ContactCard';
-import {FilterForm, FilterFormValues} from 'src/components/FilterForm';
-import {ContactDto} from 'src/types/dto/ContactDto';
+import { useContext, useState } from 'react';
+import { Col, Row } from 'react-bootstrap';
+import { ContactCard } from 'src/components/ContactCard';
+import { FilterForm, FilterFormValues } from 'src/components/FilterForm';
+import { ContactsContext } from 'src/context/ContactsContext';
+import { GroupContactsDto } from 'src/types/dto/GroupContactsDto';
 
+export const ContactListPage = () => {
+  const { state } = useContext(ContactsContext);
+  const { contacts, groups } = state;
+  const [filteredContacts, setFilteredContacts] = useState(contacts);
 
-export const ContactListPage = memo<CommonPageProps>(({
-  contactsState, groupContactsState
-}) => {
-  const [contacts, setContacts] = useState<ContactDto[]>(contactsState[0])
-  const onSubmit = (fv: Partial<FilterFormValues>) => {
-    let findContacts: ContactDto[] = contactsState[0];
+  const handleFilterSubmit = (values: FilterFormValues) => {
+    let filtered = contacts;
 
-    if (fv.name) {
-      const fvName = fv.name.toLowerCase();
-      findContacts = findContacts.filter(({name}) => (
-        name.toLowerCase().indexOf(fvName) > -1
-      ))
+    if (values.name) {
+      filtered = filtered.filter(contact => 
+        contact.name.toLowerCase().includes(values.name.toLowerCase())
+      );
     }
-
-    if (fv.groupId) {
-      const groupContacts = groupContactsState[0].find(({id}) => id === fv.groupId);
-
-      if (groupContacts) {
-        findContacts = findContacts.filter(({id}) => (
-          groupContacts.contactIds.includes(id)
-        ))
+    
+    if (values.groupId) {
+      const group = groups.find(g => g.id === values.groupId);
+      if (group) {
+        filtered = filtered.filter(contact => 
+          group.contactIds.includes(contact.id)
+        );
+      } else {
+        filtered = [];
       }
     }
 
-    setContacts(findContacts)
-  }
+    setFilteredContacts(filtered);
+  };
 
   return (
     <Row xxl={1}>
       <Col className="mb-3">
-        <FilterForm groupContactsList={groupContactsState[0]} initialValues={{}} onSubmit={onSubmit} />
+        <FilterForm 
+          groupContactsList={groups as GroupContactsDto[]} 
+          initialValues={{
+            name: '',  
+            groupId: '' 
+          }} 
+          onSubmit={handleFilterSubmit}
+        />
       </Col>
       <Col>
         <Row xxl={4} className="g-4">
-          {contacts.map((contact) => (
+          {filteredContacts.map(contact => (
             <Col key={contact.id}>
               <ContactCard contact={contact} withLink />
             </Col>
@@ -49,4 +56,4 @@ export const ContactListPage = memo<CommonPageProps>(({
       </Col>
     </Row>
   );
-})
+};
