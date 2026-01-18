@@ -1,33 +1,31 @@
-import { useContext, useState } from 'react';
+import { useState } from 'react';
 import { Col, Row } from 'react-bootstrap';
 import { ContactCard } from 'src/components/ContactCard';
 import { FilterForm, FilterFormValues } from 'src/components/FilterForm';
-import { ContactsContext } from 'src/context/ContactsContext';
 import { GroupContactsDto } from 'src/types/dto/GroupContactsDto';
+import { useAppSelector } from 'src/store/hooks';
+import { ContactDto } from 'src/types/dto/ContactDto';
 
 export const ContactListPage = () => {
-  const { state } = useContext(ContactsContext);
-  const { contacts, groups } = state;
-  const [filteredContacts, setFilteredContacts] = useState(contacts);
+  const contacts = useAppSelector(s => s.contacts) as ContactDto[];
+  const groups   = useAppSelector(s => s.groups) as GroupContactsDto[];
+
+  const [filteredContacts, setFilteredContacts] = useState<ContactDto[]>(contacts);
 
   const handleFilterSubmit = (values: FilterFormValues) => {
-    let filtered = contacts;
+    let filtered: ContactDto[] = contacts;
 
     if (values.name) {
-      filtered = filtered.filter(contact => 
-        contact.name.toLowerCase().includes(values.name.toLowerCase())
+      filtered = filtered.filter(c =>
+        c.name.toLowerCase().includes(values.name.toLowerCase())
       );
     }
-    
+
     if (values.groupId) {
       const group = groups.find(g => g.id === values.groupId);
-      if (group) {
-        filtered = filtered.filter(contact => 
-          group.contactIds.includes(contact.id)
-        );
-      } else {
-        filtered = [];
-      }
+      filtered = group
+        ? filtered.filter(c => group.contactIds.includes(c.id))
+        : [];
     }
 
     setFilteredContacts(filtered);
@@ -36,15 +34,13 @@ export const ContactListPage = () => {
   return (
     <Row xxl={1}>
       <Col className="mb-3">
-        <FilterForm 
-          groupContactsList={groups as GroupContactsDto[]} 
-          initialValues={{
-            name: '',  
-            groupId: '' 
-          }} 
+        <FilterForm
+          groupContactsList={groups}
+          initialValues={{ name: '', groupId: '' }}
           onSubmit={handleFilterSubmit}
         />
       </Col>
+
       <Col>
         <Row xxl={4} className="g-4">
           {filteredContacts.map(contact => (

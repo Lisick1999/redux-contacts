@@ -1,7 +1,7 @@
-import { memo, useContext } from 'react';
+import { memo } from 'react';
 import { Card } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { ContactsContext } from 'src/context/ContactsContext';
+import { useAppSelector } from 'src/store/hooks';
 
 interface GroupContactsCardProps {
   groupId: string;
@@ -13,8 +13,9 @@ export const GroupContactsCard = memo<GroupContactsCardProps>(({
   groupId,
   withLink = true,
 }) => {
-  const { state } = useContext(ContactsContext);
-  const group = state.groups.find(g => g.id === groupId);
+  const group = useAppSelector(state => 
+    state.groups.find(g => g.id === groupId)
+  );
 
   if (!group) {
     return null;
@@ -37,9 +38,7 @@ export const GroupContactsCard = memo<GroupContactsCardProps>(({
       <Card.Body>
         <Card.Header>
           {withLink ? (
-            <Link 
-              to={`/groups/${id}`} 
-            >
+            <Link to={`/groups/${id}`}>
               {name}
             </Link>
           ) : (

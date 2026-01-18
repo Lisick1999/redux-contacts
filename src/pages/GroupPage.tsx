@@ -1,60 +1,60 @@
 import { memo, useEffect, useState } from 'react';
 import { Col, Row } from 'react-bootstrap';
 import { useParams } from 'react-router-dom';
-import { ContactsContext } from 'src/context/ContactsContext';
-import { useContext } from 'react';
 import { GroupContactsCard } from 'src/components/GroupContactsCard';
 import { Empty } from 'src/components/Empty';
 import { ContactCard } from 'src/components/ContactCard';
+import { useAppSelector } from 'src/store/hooks';
 import { ContactDto, GroupContactsDto } from 'src/types/dto/ContactDto';
 
 export const GroupPage = memo(() => {
   const { groupId: groupIdParam } = useParams<{ groupId: string }>();
-  const { state } = useContext(ContactsContext);
-  const { groups, contacts } = state;
-  const [groupContacts, setGroupContacts] = useState<GroupContactsDto>();
-  const [groupContactsContacts, setGroupContactsContacts] = useState<ContactDto[]>([]);
-
   const groupId = groupIdParam ?? '';
+
+  const groups   = useAppSelector(s => s.groups)   as GroupContactsDto[];
+  const contacts = useAppSelector(s => s.contacts) as ContactDto[];
+
+  const [group, setGroup] = useState<GroupContactsDto | undefined>();
+  const [groupContacts, setGroupContacts] = useState<ContactDto[]>([]);
 
   useEffect(() => {
     if (!groupId) return;
 
-    const foundGroup = groups.find((group) => group.id === groupId);
-    setGroupContacts(foundGroup);
+    const found = groups.find(g => g.id === groupId);
+    setGroup(found);
 
-    if (foundGroup) {
-      const filteredContacts = contacts.filter((contact) => 
-        foundGroup.contactIds.includes(contact.id)
-      );
-      setGroupContactsContacts(filteredContacts);
-    } else {
-      setGroupContactsContacts([]);
-    }
+    setGroupContacts(
+      found
+        ? contacts.filter(c => found.contactIds.includes(c.id))
+        : []
+    );
   }, [groupId, groups, contacts]);
 
   return (
     <Row className="g-4">
-      {groupContacts ? (
+      {group ? (
         <>
           <Col xxl={12}>
             <Row xxl={3}>
               <Col className="mx-auto">
-                {groupId && <GroupContactsCard groupId={groupId} />}
+                <GroupContactsCard groupId={groupId} />
               </Col>
             </Row>
           </Col>
+
           <Col>
             <Row xxl={4} className="g-4">
-              {groupContactsContacts.map((contact) => (
-                <Col key={contact.id}>
-                  <ContactCard contact={contact} withLink /> {/* Изменено contactId на contact */}
+              {groupContacts.map(c => (
+                <Col key={c.id}>
+                  <ContactCard contact={c} withLink />
                 </Col>
               ))}
             </Row>
           </Col>
         </>
-      ) : <Empty />}
+      ) : (
+        <Empty />
+      )}
     </Row>
   );
 });
