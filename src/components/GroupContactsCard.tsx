@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { Card } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { useAppSelector } from 'src/store/hooks';
+import { useAppSelector } from 'src/hooks/hooks';
 
 interface GroupContactsCardProps {
   groupId: string;

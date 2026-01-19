@@ -3,8 +3,8 @@ import { Col, Row } from 'react-bootstrap';
 import { ContactCard } from 'src/components/ContactCard';
 import { FilterForm, FilterFormValues } from 'src/components/FilterForm';
 import { GroupContactsDto } from 'src/types/dto/GroupContactsDto';
-import { useAppSelector } from 'src/store/hooks';
 import { ContactDto } from 'src/types/dto/ContactDto';
+import { useAppSelector } from 'src/hooks/hooks';
 
 export const ContactListPage = () => {
   const contacts = useAppSelector(s => s.contacts) as ContactDto[];
